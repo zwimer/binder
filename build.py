@@ -81,13 +81,12 @@ def get_compiler_family():
     return 'unknown'
 
 
-def install_llvm_tool(name, source_location, prefix, debug, jobs=1, clean=True, gcc_install_prefix=None):
+def install_llvm_tool(name, source_location, prefix, debug, llvm_version, jobs=1, clean=True, gcc_install_prefix=None):
     ''' Install and update (if needed) custom LLVM tool at given prefix (from config).
         Return absolute path to executable on success and terminate with error on failure
     '''
     if not os.path.isdir(prefix): os.makedirs(prefix)
 
-    llvm_version='6.0.1'
     prefix += '/llvm-' + llvm_version
     clang_path = "{prefix}/tools/clang".format(**locals())
 
@@ -155,6 +154,7 @@ def main(args):
     parser.add_argument('--binder', default='', help='Path to Binder tool. If none is given then download, build and install binder into build/ directory. Use "--binder-debug" to control which mode of binder (debug/release) is used.')
     parser.add_argument("--binder-debug", action="store_true", help="Run binder tool in debug mode (only relevant if no '--binder' option was specified)")
     parser.add_argument('--pybind11', default='', help='Path to pybind11 source tree')
+    parser.add_argument('--llvm-version', default='6.0.1', help='The LLVM version to build binder with')
     parser.add_argument('--annotate-includes', action="store_true", help='Annotate includes in generated source files')
     parser.add_argument('--trace', action="store_true", help='Binder will add trace output to to generated source files')
 
@@ -163,7 +163,7 @@ def main(args):
 
     source_path = os.path.abspath('.')
 
-    if not Options.binder: Options.binder = install_llvm_tool('binder', source_path+'/source', source_path + '/build', Options.binder_debug, jobs=Options.jobs)
+    if not Options.binder: Options.binder = install_llvm_tool('binder', source_path+'/source', source_path + '/build', Options.binder_debug, Options.llvm_version, jobs=Options.jobs)
 
     if not Options.pybind11: Options.pybind11 = install_pybind11(source_path + '/build')
 

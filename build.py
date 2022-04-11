@@ -90,9 +90,14 @@ def install_llvm_tool(name, source_location, prefix, debug, llvm_version, jobs=1
     prefix += '/llvm-' + llvm_version
     clang_path = "{prefix}/tools/clang".format(**locals())
 
-    if not os.path.isfile(prefix + '/CMakeLists.txt'): execute('Download llvm source.', 'curl https://releases.llvm.org/{llvm_version}/llvm-{llvm_version}.src.tar.xz | tar -Jxo && mv llvm-{llvm_version}.src {prefix}'.format(llvm_version=llvm_version, prefix=prefix) )
+    # LLVM started releasing on only github starting with 9.0.1
+    v = llvm_version.split('.').extend([0,0,0])
+    url_prefix = 'https://github.com/llvm/llvm-project/releases/download/llvmorg-' if (v[0] > 9) or (v[0] == 9 and v[2] >= 1) else 'https://releases.llvm.org/'
+    make_url = lambda proj: f'{url_prefix}{llvm_version}/{proj}-{llvm_version}.src.tar.xz'
 
-    if not os.path.isdir(clang_path): execute('Download clang source.', 'curl https://releases.llvm.org/{llvm_version}/cfe-{llvm_version}.src.tar.xz | tar -Jxo && mv cfe-{llvm_version}.src {clang_path}'.format(llvm_version=llvm_version, clang_path=clang_path) )
+    if not os.path.isfile(prefix + '/CMakeLists.txt'): execute('Download llvm source.', 'curl ' + make_url('llvm')  + ' | tar -Jxo && mv llvm-{llvm_version}.src {prefix}'.format(llvm_version=llvm_version, prefix=prefix) )
+
+    if not os.path.isdir(clang_path): execute('Download clang source.', 'curl ' + make_url('clang') + ' | tar -Jxo && mv cfe-{llvm_version}.src {clang_path}'.format(llvm_version=llvm_version, clang_path=clang_path) )
 
     if not os.path.isdir(prefix+'/tools/clang/tools/extra'): os.makedirs(prefix+'/tools/clang/tools/extra')
 
